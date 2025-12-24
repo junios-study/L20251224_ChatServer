@@ -6,7 +6,15 @@
 #include <iostream>
 #include <WinSock2.h>
 
+#include <rapidjson/document.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
+#include "ChatPacket.h"
+
 #pragma comment(lib, "ws2_32")
+
+
 
 using namespace std;
 
@@ -34,12 +42,12 @@ int main()
 	SOCKADDR_IN ListenSockAddr;
 	memset(&ListenSockAddr, 0, sizeof(ListenSockAddr));
 	ListenSockAddr.sin_family = AF_INET;
-	ListenSockAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	ListenSockAddr.sin_port = htons(33333);
+	ListenSockAddr.sin_addr.s_addr = inet_addr("192.168.0.100");
+	ListenSockAddr.sin_port = htons(30000);
 
 	bind(ListenSocket, (SOCKADDR*)&ListenSockAddr, sizeof(ListenSockAddr));
 
-	listen(ListenSocket, 5);
+	listen(ListenSocket, 5); 
 
 	fd_set ReadSocketList;
 	FD_ZERO(&ReadSocketList);
