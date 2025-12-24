@@ -6,10 +6,6 @@
 #include <iostream>
 #include <WinSock2.h>
 
-#include <rapidjson/document.h>
-#include <rapidjson/writer.h>
-#include <rapidjson/stringbuffer.h>
-
 #include "ChatPacket.h"
 
 #pragma comment(lib, "ws2_32")
