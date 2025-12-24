@@ -93,7 +93,7 @@ int main()
 					int PacketSize = 0;
 					int RecvBytes = recv(SelectSocket, (char*)&PacketSize, sizeof(PacketSize), MSG_WAITALL);
 
-					cout << "RecvBytes : " << RecvBytes << "PacketSize : " << PacketSize << endl;
+					cout << "RecvBytes : " << RecvBytes << ", PacketSize : " << PacketSize << endl;
 
 					if (RecvBytes == 0)
 					{
@@ -111,6 +111,8 @@ int main()
 					}
 
 					PacketSize = ntohl(PacketSize);
+
+					cout << "PacketSize : " << PacketSize << endl;
 
 					//실제 패킷 사이즈만큼 기다림
 					char Buffer[4096] = { 0, };
@@ -142,7 +144,7 @@ int main()
 						int SendBytes = send(ReadSocketList.fd_array[j], (char*)&PacketSize, sizeof(PacketSize), 0);
 
 						//JSON String
-						SendBytes = send(ReadSocketList.fd_array[j], Buffer, RecvBytes + 1, 0);
+						SendBytes = send(ReadSocketList.fd_array[j], Buffer, RecvBytes, 0);
 					}
 				}
 			}
