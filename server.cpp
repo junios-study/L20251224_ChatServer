@@ -53,6 +53,7 @@ int main()
 	FD_ZERO(&ReadSocketList);
 	FD_SET(ListenSocket, &ReadSocketList);
 
+	cout << "Start Server" << endl;
 
 	//[1][1][1]  [1][1]   ->   [1][1]
 	TIMEVAL Timeout;
@@ -88,25 +89,61 @@ int main()
 				}
 				else
 				{
-					//자료 온거지
-					char Buffer[1024] = { 0, };
-					int RecvBytes = recv(SelectSocket, Buffer, sizeof(Buffer), 0);
+					//Header를 다 받을때까지 기다림
+					int PacketSize = 0;
+					int RecvBytes = recv(SelectSocket, (char*)&PacketSize, sizeof(PacketSize), MSG_WAITALL);
+
+					cout << "RecvBytes : " << RecvBytes << "PacketSize : " << PacketSize << endl;
+
 					if (RecvBytes == 0)
 					{
 						cout << "client disconnect : " << PrintAddress(SelectSocket) << endl;
 						FD_CLR(SelectSocket, &ReadSocketList);
 						closesocket(SelectSocket);
+						continue;
 					}
 					else if (RecvBytes < 0)
 					{
 						cout << "client error disconnect : " << PrintAddress(SelectSocket) << endl;
 						FD_CLR(SelectSocket, &ReadSocketList);
 						closesocket(SelectSocket);
+						continue;
 					}
 
-					cout << "client send : " << Buffer << endl;
+					PacketSize = ntohl(PacketSize);
 
-					int SendBytes = send(SelectSocket, Buffer, RecvBytes, 0);
+					//실제 패킷 사이즈만큼 기다림
+					char Buffer[4096] = { 0, };
+					RecvBytes = recv(SelectSocket, Buffer, PacketSize, MSG_WAITALL);
+					if (RecvBytes <= 0)
+					{
+						cout << "client error disconnect : " << PrintAddress(SelectSocket) << endl;
+						FD_CLR(SelectSocket, &ReadSocketList);
+						closesocket(SelectSocket);
+						continue;
+					}
+
+					//Process Packet
+					ChatPacket Data;
+					Data.Parse(Buffer);
+
+					cout << Data.UserName + " : " << Data.Message << endl;
+
+					PacketSize = htonl(PacketSize);
+
+					for (int j = 0; j < (int)ReadSocketList.fd_count; ++j)
+					{
+						if (ListenSocket == ReadSocketList.fd_array[j])
+						{
+							continue;
+						}
+
+						//JSON 패킷 크기(header)
+						int SendBytes = send(ReadSocketList.fd_array[j], (char*)&PacketSize, sizeof(PacketSize), 0);
+
+						//JSON String
+						SendBytes = send(ReadSocketList.fd_array[j], Buffer, RecvBytes + 1, 0);
+					}
 				}
 			}
 		}
